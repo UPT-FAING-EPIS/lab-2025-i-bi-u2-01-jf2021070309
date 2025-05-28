@@ -1,7 +1,9 @@
 name: Desplegar Base de Datos con Liquibase
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
