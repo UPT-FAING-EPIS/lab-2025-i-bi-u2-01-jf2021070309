@@ -53,11 +53,12 @@ jobs:
       - name: Generate PDF report from costos.md
         working-directory: ./infra
         run: |
-            echo "# 📊 Informe de Costos de Infraestructura - Proyecto" > costos.md
+            # Generar el markdown sin emojis para evitar error LaTeX
+            echo "# Informe de Costos de Infraestructura - Proyecto" > costos.md
             echo "" >> costos.md
             echo "Este informe detalla los costos mensuales estimados de los recursos desplegados en la infraestructura del proyecto." >> costos.md
             echo "" >> costos.md
-            echo "## 💰 Recursos con Costo" >> costos.md
+            echo "## Recursos con Costo" >> costos.md
             echo "" >> costos.md
             echo "| Recurso | Componente | Cantidad | Unidad | Costo Mensual |" >> costos.md
             echo "|:--------|:-----------|---------:|:------:|--------------:|" >> costos.md
@@ -68,7 +69,7 @@ jobs:
 
             echo "" >> costos.md
             total=$(jq -r '.projects[].breakdown.totalMonthlyCost' costos.json)
-            echo "## 🧾 Total Estimado" >> costos.md
+            echo "## Total Estimado" >> costos.md
             echo "" >> costos.md
             echo "**Total mensual estimado:** \$${total} USD/mes" >> costos.md
             echo "" >> costos.md

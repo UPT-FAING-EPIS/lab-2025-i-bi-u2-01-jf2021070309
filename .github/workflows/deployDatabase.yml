@@ -15,8 +15,10 @@ jobs:
 
       - name: Instalar Liquibase
         run: |
-          curl -L https://github.com/liquibase/liquibase/releases/download/v4.26.0/liquibase-4.26.0.tar.gz | tar xz
-          sudo mv liquibase /usr/local/bin/liquibase
+          curl -L -o liquibase.tar.gz https://github.com/liquibase/liquibase/releases/download/v4.26.0/liquibase-4.26.0.tar.gz
+          mkdir liquibase-cli
+          tar -xzf liquibase.tar.gz -C liquibase-cli --strip-components=1
+          sudo mv liquibase-cli/liquibase /usr/local/bin/liquibase
 
       - name: Crear changelog temporal para modelo01.sql
         run: |
