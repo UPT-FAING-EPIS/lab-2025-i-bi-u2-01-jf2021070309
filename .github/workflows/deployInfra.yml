@@ -34,9 +34,10 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: terraform plan -out=tfplan.binary
 
-      - name: Install Infracost CLI
-        run: |
-          curl -sL https://github.com/infracost/infracost/releases/latest/download/infracost-linux-amd64.tar.gz | tar xz -C /usr/local/bin
+      - name: Setup infracost
+        uses: infracost/actions/setup@v3
+        with:
+            api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate cost breakdown (table & JSON)
         working-directory: ./infra
