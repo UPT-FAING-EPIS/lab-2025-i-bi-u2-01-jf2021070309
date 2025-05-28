@@ -6,6 +6,7 @@ terraform {
     }
   }
 }
+
 provider "azurerm" {
   features {}
 
@@ -15,15 +16,15 @@ provider "azurerm" {
   tenant_id       = var.tenant_id
 }
 
-resource "azurerm_resource_group" "rg-labs-u2-proyecto-jf" {
-  name     = "rg-labs-u2-proyecto-jf"
+resource "azurerm_resource_group" "rg-labs-u2-proyectos-jf" {
+  name     = "rg-labs-u2-proyectos-jf"
   location = "East US 2"
 }
 
-resource "azurerm_mssql_server" "labs-u2-jf" {
-  name                         = "labs-u2-jf" 
-  resource_group_name          = azurerm_resource_group.rg-labs-u2-proyecto-jf.name
-  location                     = azurerm_resource_group.rg-labs-u2-proyecto-jf.location
+resource "azurerm_mssql_server" "labs-u2-proyectos-jf" {
+  name                         = "labs-u2-proyectos-jf"
+  resource_group_name          = azurerm_resource_group.rg-labs-u2-proyectos-jf.name
+  location                     = azurerm_resource_group.rg-labs-u2-proyectos-jf.location
   version                      = "12.0"
   administrator_login          = var.sqladmin_username
   administrator_login_password = var.sqladmin_password
@@ -35,7 +36,7 @@ resource "azurerm_mssql_server" "labs-u2-jf" {
 
 resource "azurerm_mssql_database" "db_modelo01" {
   name                        = "modelo01"
-  server_id                   = azurerm_mssql_server.labs-u2-jf.id
+  server_id                   = azurerm_mssql_server.labs-u2-proyectos-jf.id
   sku_name                    = "GP_S_Gen5_2"
   collation                   = "SQL_Latin1_General_CP1_CI_AS"
   auto_pause_delay_in_minutes = 60
@@ -45,7 +46,7 @@ resource "azurerm_mssql_database" "db_modelo01" {
 
 resource "azurerm_mssql_database" "db_modelo02" {
   name                        = "modelo02"
-  server_id                   = azurerm_mssql_server.labs-u2-jf.id
+  server_id                   = azurerm_mssql_server.labs-u2-proyectos-jf.id
   sku_name                    = "GP_S_Gen5_2"
   collation                   = "SQL_Latin1_General_CP1_CI_AS"
   auto_pause_delay_in_minutes = 60
@@ -55,7 +56,7 @@ resource "azurerm_mssql_database" "db_modelo02" {
 
 resource "azurerm_mssql_database" "db_modelo03" {
   name                        = "modelo03"
-  server_id                   = azurerm_mssql_server.labs-u2-jf.id
+  server_id                   = azurerm_mssql_server.labs-u2-proyectos-jf.id
   sku_name                    = "GP_S_Gen5_2"
   collation                   = "SQL_Latin1_General_CP1_CI_AS"
   auto_pause_delay_in_minutes = 60
@@ -65,7 +66,7 @@ resource "azurerm_mssql_database" "db_modelo03" {
 
 resource "azurerm_mssql_firewall_rule" "allow-azure-services" {
   name             = "AllowAzureServices"
-  server_id        = azurerm_mssql_server.labs-u2-jf.id
+  server_id        = azurerm_mssql_server.labs-u2-proyectos-jf.id
   start_ip_address = "0.0.0.0"
   end_ip_address   = "255.255.255.255"
 }
