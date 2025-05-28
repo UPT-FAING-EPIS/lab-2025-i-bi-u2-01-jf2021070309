@@ -71,6 +71,12 @@ jobs:
 
           pandoc costos.md -o costos.pdf
 
+      - name: Upload PDF Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: costos-infraestructura
+          path: ./infra/costos.pdf
+
       - name: Terraform Apply
         working-directory: ./infra
         env:
