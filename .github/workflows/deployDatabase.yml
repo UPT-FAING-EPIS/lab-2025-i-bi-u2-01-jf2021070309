@@ -13,12 +13,15 @@ jobs:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar Liquibase
+      - name: Instalar Liquibase v4.24.0
         run: |
-          curl -L -o liquibase.tar.gz https://github.com/liquibase/liquibase/releases/download/v4.26.0/liquibase-4.26.0.tar.gz
-          mkdir liquibase-cli
-          tar -xzf liquibase.tar.gz -C liquibase-cli --strip-components=1
-          sudo mv liquibase-cli/liquibase /usr/local/bin/liquibase
+          wget -q https://github.com/liquibase/liquibase/releases/download/v4.24.0/liquibase-4.24.0.zip
+          unzip -q liquibase-4.24.0.zip -d liquibase
+          chmod +x liquibase/liquibase
+          sudo mv liquibase/liquibase /usr/local/bin/liquibase
+
+      - name: Verificar instalación de Liquibase
+        run: liquibase --version
 
       - name: Crear changelog temporal para modelo01.sql
         run: |
