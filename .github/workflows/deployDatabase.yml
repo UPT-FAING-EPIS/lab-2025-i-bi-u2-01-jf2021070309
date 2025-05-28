@@ -1,0 +1,86 @@
+name: Desplegar Base de Datos con Liquibase
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Liquibase
+        run: |
+          curl -L https://github.com/liquibase/liquibase/releases/download/v4.26.0/liquibase-4.26.0.tar.gz | tar xz
+          sudo mv liquibase /usr/local/bin/liquibase
+
+      - name: Crear changelog temporal para modelo01.sql
+        run: |
+          cat <<EOF > changelog-modelo01.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <databaseChangeLog
+              xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+              <changeSet id="modelo01" author="github">
+                  <sqlFile path="modelo01.sql" endDelimiter=";" splitStatements="true"/>
+              </changeSet>
+          </databaseChangeLog>
+          EOF
+
+      - name: Ejecutar modelo01.sql
+        run: |
+          liquibase \
+            --url="${{ secrets.DB_URL_01 }}" \
+            --username="${{ secrets.TF_VAR_SQLADMIN_USERNAME }}" \
+            --password="${{ secrets.TF_VAR_SQLADMIN_PASSWORD }}" \
+            --changeLogFile=changelog-modelo01.xml update
+
+      - name: Crear changelog temporal para modelo02.sql
+        run: |
+          cat <<EOF > changelog-modelo02.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <databaseChangeLog
+              xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+              <changeSet id="modelo02" author="github">
+                  <sqlFile path="modelo02.sql" endDelimiter=";" splitStatements="true"/>
+              </changeSet>
+          </databaseChangeLog>
+          EOF
+
+      - name: Ejecutar modelo02.sql
+        run: |
+          liquibase \
+            --url="${{ secrets.DB_URL_02 }}" \
+            --username="${{ secrets.TF_VAR_SQLADMIN_USERNAME }}" \
+            --password="${{ secrets.TF_VAR_SQLADMIN_PASSWORD }}" \
+            --changeLogFile=changelog-modelo02.xml update
+
+      - name: Crear changelog temporal para modelo03.sql
+        run: |
+          cat <<EOF > changelog-modelo03.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <databaseChangeLog
+              xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+              <changeSet id="modelo03" author="github">
+                  <sqlFile path="modelo03.sql" endDelimiter=";" splitStatements="true"/>
+              </changeSet>
+          </databaseChangeLog>
+          EOF
+
+      - name: Ejecutar modelo03.sql
+        run: |
+          liquibase \
+            --url="${{ secrets.DB_URL_03 }}" \
+            --username="${{ secrets.TF_VAR_SQLADMIN_USERNAME }}" \
+            --password="${{ secrets.TF_VAR_SQLADMIN_PASSWORD }}" \
+            --changeLogFile=changelog-modelo03.xml update
