@@ -53,19 +53,20 @@ jobs:
       - name: Generate PDF report from costos.md
         working-directory: ./infra
         run: |
-            # Generar el markdown sin emojis para evitar error LaTeX
+            # Generar markdown sin emojis
             echo "# Informe de Costos de Infraestructura - Proyecto" > costos.md
             echo "" >> costos.md
             echo "Este informe detalla los costos mensuales estimados de los recursos desplegados en la infraestructura del proyecto." >> costos.md
             echo "" >> costos.md
             echo "## Recursos con Costo" >> costos.md
             echo "" >> costos.md
-            echo "| Recurso | Componente | Cantidad | Unidad | Costo Mensual |" >> costos.md
-            echo "|:--------|:-----------|---------:|:------:|--------------:|" >> costos.md
-            jq -r '.projects[].breakdown.resources[] | 
-            .name as $rname | 
-            .costComponents[] | 
-            "| \($rname) | \(.name) | \(.monthlyQuantity // "*Variable*") | \(.unit) | \(.monthlyCost | if . then "$" + tostring else "*Depende del uso*" end) |"' costos.json >> costos.md
+            echo "| Recurso               | Componente | Cantidad | Unidad | Costo Mensual |" >> costos.md
+            echo "|:----------------------|:-----------|---------:|:------:|--------------:|" >> costos.md
+
+            jq -r '.projects[].breakdown.resources[] |
+            .name as $rname |
+            .costComponents[] |
+            "| \($rname | if length > 20 then (.[:17] + "...") else . end) | \(.name) | \(.monthlyQuantity // "*Variable*") | \(.unit) | \(.monthlyCost | if . then "$" + tostring else "*Depende del uso*" end) |"' costos.json >> costos.md
 
             echo "" >> costos.md
             total=$(jq -r '.projects[].breakdown.totalMonthlyCost' costos.json)
@@ -76,6 +77,7 @@ jobs:
             echo "_Este reporte fue generado automáticamente el día: $(date +%Y-%m-%d)_" >> costos.md
 
             pandoc costos.md -o costos.pdf
+
 
 
       - name: Upload PDF Report
