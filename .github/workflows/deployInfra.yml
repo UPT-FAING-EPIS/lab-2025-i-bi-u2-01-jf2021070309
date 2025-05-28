@@ -1,0 +1,80 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        working-directory: ./infra
+        run: terraform init
+
+      - name: Terraform Plan (save plan to file)
+        working-directory: ./infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_sqladmin_username: ${{ secrets.TF_VAR_sqladmin_username }}
+          TF_VAR_sqladmin_password: ${{ secrets.TF_VAR_sqladmin_password }}
+        run: terraform plan -out=tfplan.binary
+
+      - name: Install Infracost CLI
+        run: |
+          curl -sL https://github.com/infracost/infracost/releases/latest/download/infracost-linux-amd64.tar.gz | tar xz -C /usr/local/bin
+
+      - name: Generate cost breakdown (table & JSON)
+        working-directory: ./infra
+        run: |
+          infracost breakdown --path=tfplan.binary --format table
+          infracost breakdown --path=tfplan.binary --format json > costos.json
+
+      - name: Install Pandoc and LaTeX (texlive)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-plain-generic
+
+      - name: Generate PDF report from costos.md
+        working-directory: ./infra
+        run: |
+          # Convert JSON to Markdown report with PowerShell syntax translated to bash
+          echo "# Informe de Costos de Infraestructura - Proyecto" > costos.md
+          echo "" >> costos.md
+          echo "## Recursos con Costo" >> costos.md
+          echo "" >> costos.md
+          echo "| Recurso | Componente | Cantidad | Unidad | Costo |" >> costos.md
+          echo "|---------|------------|----------|--------|-------|" >> costos.md
+          jq -r '.projects[].breakdown.resources[] | 
+            .name as $rname | 
+            .costComponents[] | 
+            "| \($rname) | \(.name) | \(.monthlyQuantity // "*Variable*") | \(.unit) | \(.monthlyCost | if . then "$" + tostring else "Depende del uso" end) |"' costos.json >> costos.md
+          echo "" >> costos.md
+          total=$(jq -r '.projects[].breakdown.totalMonthlyCost' costos.json)
+          echo "## Total: *${total} USD/mes*" >> costos.md
+          echo "" >> costos.md
+          echo "*Actualizado: $(date +%F)*" >> costos.md
+
+          pandoc costos.md -o costos.pdf
+
+      - name: Terraform Apply
+        working-directory: ./infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_sqladmin_username: ${{ secrets.TF_VAR_sqladmin_username }}
+          TF_VAR_sqladmin_password: ${{ secrets.TF_VAR_sqladmin_password }}
+        run: terraform apply -auto-approve
